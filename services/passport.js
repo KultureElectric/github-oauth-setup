@@ -1,16 +1,31 @@
 const passport = require("passport");
-const GitHubStrategy = require("passport-github").Strategy;
+const GitHubStrategy = require("passport-github2").Strategy;
+const mongoose = require("mongoose");
 const keys = require("../config/keys");
+
+const User = mongoose.model("users");
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  User.findById(id, user => {
+    done(null, user);
+  });
+});
 
 passport.use(
   new GitHubStrategy(
     {
       clientID: keys.gitHubClientID,
       clientSecret: keys.gitHubClientSecret,
-      callbackURL: "http://localhost:5000/auth/github/callback"
+      callbackURL: "/auth/github/callback"
     },
     (accessToken, refreshToken, profile, done) => {
-      console.log(profile);
+      User.findOrCreate({ githubID: profile.id }, user => {
+        return done(null, user);
+      });
     }
   )
 );
