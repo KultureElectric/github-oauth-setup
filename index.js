@@ -9,8 +9,6 @@ mongoose.connect("mongodb://localhost/github-oauth-setup");
 
 const app = express();
 
-require("./routes/routes")(app);
-
 app.use(
   cookieSession({
     maxAge: 24 * 60 * 60 * 1000,
@@ -21,5 +19,7 @@ app.use(
 app.use(passport.initialize());
 
 app.use(passport.session());
+
+require("./routes/routes")(app);
 
 app.listen(5000, () => console.log("App is listening on port 5000"));

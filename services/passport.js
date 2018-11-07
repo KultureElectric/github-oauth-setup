@@ -10,7 +10,7 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((id, done) => {
-  User.findById(id, user => {
+  User.findById(id).then(user => {
     done(null, user);
   });
 });
@@ -22,10 +22,14 @@ passport.use(
       clientSecret: keys.gitHubClientSecret,
       callbackURL: "/auth/github/callback"
     },
-    (accessToken, refreshToken, profile, done) => {
-      User.findOrCreate({ githubID: profile.id }, user => {
-        return done(null, user);
-      });
+    async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ githubID: profile.id });
+      if (existingUser) {
+        return done(null, existingUser);
+      } else {
+        const newUser = await new User({ githubID: profile.id }).save();
+        return done(null, newUser);
+      }
     }
   )
 );
